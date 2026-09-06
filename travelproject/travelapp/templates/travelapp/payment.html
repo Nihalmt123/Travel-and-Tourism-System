@@ -1,0 +1,551 @@
+{% extends 'travelapp/base.html' %}
+{% load static %}
+
+{% block title %}Secure Payment | TravelWorld{% endblock %}
+
+{% block content %}
+
+{% if payment_success %}
+
+<section class="payment-success-page">
+  <div class="success-card-main">
+    <div class="success-ring-main">
+      <div class="success-tick-main">✓</div>
+    </div>
+
+    <h1>Payment Successful</h1>
+    <h2>₹{{ booking.total_amount }}</h2>
+    <p>Paid successfully via UPI</p>
+
+    <div class="success-info">
+      <div>
+        <span>Booking ID</span>
+        <b>TW-{{ booking.id }}</b>
+      </div>
+      <div>
+        <span>Package</span>
+        <b>{{ booking.package.name }}</b>
+      </div>
+      <div>
+        <span>Transaction ID</span>
+        <b>{{ payment.transaction_id }}</b>
+      </div>
+    </div>
+
+   <a class="view-receipt-btn" href="{% url 'receipt' booking.id %}">
+  View Receipt
+</a>
+
+<a class="whatsapp-btn"
+   href="{{ whatsapp_url }}"
+   target="_blank">
+   Send Confirmation on WhatsApp
+</a>
+  </div>
+</section>
+
+<style>
+.payment-success-page{
+  min-height:80vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(180deg,#f8fffb,#e8fff0);
+  padding:45px 7%;
+}
+
+.success-card-main{
+  width:min(520px,95%);
+  text-align:center;
+  background:white;
+  border-radius:34px;
+  padding:46px 34px;
+  box-shadow:0 35px 90px rgba(15,23,42,.16);
+  animation:successZoom .45s ease;
+}
+
+.success-ring-main{
+  width:175px;
+  height:175px;
+  border-radius:50%;
+  background:#dcfce7;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 28px;
+  animation:ringPulse 1.4s infinite;
+}
+
+.success-tick-main{
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  background:#16a34a;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:82px;
+  font-weight:900;
+  box-shadow:0 24px 55px rgba(22,163,74,.38);
+  animation:tickPop .55s ease;
+}
+
+.success-card-main h1{
+  margin:0 0 10px;
+  font-size:42px;
+  color:#0f172a;
+}
+
+.success-card-main h2{
+  margin:0;
+  font-size:48px;
+  color:#16a34a;
+}
+
+.success-card-main p{
+  margin:10px 0 24px;
+  color:#64748b;
+  font-size:18px;
+  font-weight:800;
+}
+
+.success-info{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:22px;
+  padding:18px;
+  text-align:left;
+  margin:25px 0;
+}
+
+.success-info div{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  padding:11px 0;
+  border-bottom:1px solid #e2e8f0;
+}
+
+.success-info div:last-child{
+  border-bottom:none;
+}
+
+.success-info span{
+  color:#64748b;
+  font-weight:700;
+}
+
+.success-info b{
+  color:#0f172a;
+  text-align:right;
+}
+
+.view-receipt-btn{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  padding:17px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#16a34a,#059669);
+  color:white;
+  font-weight:900;
+  text-decoration:none;
+  box-shadow:0 14px 35px rgba(22,163,74,.30);
+  .whatsapp-btn{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  padding:17px;
+  margin-top:12px;
+  border-radius:18px;
+  background:#25D366;
+  color:white;
+  font-weight:900;
+  text-decoration:none;
+  box-shadow:0 14px 35px rgba(37,211,102,.30);
+}
+
+.whatsapp-btn:hover{
+  background:#1ebe5d;
+}
+}
+
+@keyframes successZoom{
+  from{opacity:0;transform:scale(.72)}
+  to{opacity:1;transform:scale(1)}
+}
+
+@keyframes tickPop{
+  0%{transform:scale(.3)}
+  70%{transform:scale(1.12)}
+  100%{transform:scale(1)}
+}
+
+@keyframes ringPulse{
+  0%{box-shadow:0 0 0 0 rgba(22,163,74,.35)}
+  70%{box-shadow:0 0 0 42px rgba(22,163,74,0)}
+  100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}
+}
+</style>
+
+{% else %}
+
+<div class="payment-page">
+
+  <div class="payment-header">
+    <span>🔒 Secure UPI Payment</span>
+    <h1>Complete Your Booking Payment</h1>
+    <p>Scan the QR code, pay the exact amount, then enter your transaction ID.</p>
+  </div>
+
+  <div class="payment-layout">
+
+    <div class="payment-card qr-section">
+      <div class="card-badge">Step 1</div>
+      <h2>Scan & Pay</h2>
+
+      <div class="amount-box">
+        <p>Total Payable</p>
+        <h1>₹{{ booking.total_amount }}</h1>
+      </div>
+
+      <div class="qr-box">
+        {% if dynamic_qr %}
+          <img class="qr" src="{{ dynamic_qr }}" alt="Dynamic UPI QR">
+          <p class="success-note">QR generated with exact amount ₹{{ booking.total_amount }}</p>
+        {% else %}
+          <img class="qr" src="{% static 'travelapp/img/nihal_upi_qr.jpeg' %}" alt="Nihal UPI QR">
+          <p class="warning-note">Static QR shown. Pay exact amount manually.</p>
+        {% endif %}
+      </div>
+
+      <div class="upi-box">
+        <span>UPI ID</span>
+        <b id="upiText">{{ upi_id }}</b>
+        <button type="button" onclick="copyUPI()">Copy</button>
+      </div>
+
+      <p class="instruction">
+        Use Google Pay, PhonePe, Paytm, BHIM or any UPI app.
+      </p>
+    </div>
+
+    <div class="payment-card summary-section">
+      <div class="card-badge">Step 2</div>
+      <h2>Booking Summary</h2>
+
+      <div class="summary-list">
+        <div><span>Package</span><b>{{ booking.package.name }}</b></div>
+        <div><span>Traveller</span><b>{{ booking.full_name }}</b></div>
+        <div><span>Members</span><b>{{ booking.members }}</b></div>
+        <div><span>Price / Person</span><b>₹{{ booking.package.price }}</b></div>
+        <div><span>Discount</span><b class="green-text">₹{{ booking.discount_amount }}</b></div>
+
+        <div class="total-row">
+          <span>Total Payable</span>
+          <b>₹{{ booking.total_amount }}</b>
+        </div>
+      </div>
+
+      <form method="post" class="pay-form">
+        {% csrf_token %}
+
+        <label>UPI Transaction ID / Reference Number</label>
+        <input
+          type="text"
+          name="transaction_id"
+          placeholder="Example: 425781902345"
+          required
+        >
+
+        <button class="confirm-btn" type="submit">
+          Confirm Booking
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <div class="payment-steps">
+    <div>1. Scan QR</div>
+    <div>2. Pay exact amount</div>
+    <div>3. Enter transaction ID</div>
+    <div>4. Confirm booking</div>
+  </div>
+
+</div>
+
+<style>
+.payment-page{
+  min-height:80vh;
+  padding:45px 7%;
+  background:
+    radial-gradient(circle at top left,#dbeafe,transparent 32%),
+    linear-gradient(135deg,#f8fbff,#eef5ff);
+}
+
+.payment-header{
+  text-align:center;
+  margin-bottom:32px;
+}
+
+.payment-header span{
+  display:inline-block;
+  background:#ecfdf5;
+  color:#047857;
+  padding:9px 18px;
+  border-radius:30px;
+  font-weight:800;
+  margin-bottom:12px;
+}
+
+.payment-header h1{
+  font-size:42px;
+  color:#0f172a;
+  margin:0 0 10px;
+}
+
+.payment-header p{
+  color:#64748b;
+  font-size:17px;
+}
+
+.payment-layout{
+  max-width:1120px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:28px;
+}
+
+.payment-card{
+  position:relative;
+  background:white;
+  border-radius:28px;
+  padding:32px;
+  box-shadow:0 25px 70px rgba(15,23,42,.12);
+  border:1px solid #e5e7eb;
+}
+
+.card-badge{
+  position:absolute;
+  top:22px;
+  right:22px;
+  background:#eff6ff;
+  color:#2563eb;
+  padding:8px 15px;
+  border-radius:20px;
+  font-weight:800;
+  font-size:13px;
+}
+
+.payment-card h2{
+  color:#0f172a;
+  margin-bottom:22px;
+}
+
+.amount-box{
+  background:linear-gradient(135deg,#16a34a,#059669);
+  color:white;
+  border-radius:22px;
+  padding:22px;
+  text-align:center;
+  margin-bottom:24px;
+}
+
+.amount-box p{
+  margin:0;
+  opacity:.9;
+}
+
+.amount-box h1{
+  font-size:46px;
+  margin:5px 0 0;
+}
+
+.qr-box{
+  text-align:center;
+  background:#f8fafc;
+  border:1px dashed #cbd5e1;
+  border-radius:22px;
+  padding:22px;
+}
+
+.qr{
+  width:250px;
+  max-width:100%;
+  border-radius:18px;
+  background:white;
+  padding:12px;
+  box-shadow:0 12px 35px rgba(15,23,42,.12);
+}
+
+.success-note{
+  color:#047857;
+  font-weight:700;
+}
+
+.warning-note{
+  color:#b45309;
+  font-weight:700;
+}
+
+.upi-box{
+  margin-top:22px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:14px;
+}
+
+.upi-box span{
+  color:#64748b;
+}
+
+.upi-box b{
+  flex:1;
+  color:#0f172a;
+}
+
+.upi-box button{
+  border:none;
+  background:#2563eb;
+  color:white;
+  padding:9px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.instruction{
+  text-align:center;
+  color:#64748b;
+  margin-top:18px;
+}
+
+.summary-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.summary-list div{
+  display:flex;
+  justify-content:space-between;
+  gap:15px;
+  padding:14px 0;
+  border-bottom:1px solid #e5e7eb;
+}
+
+.summary-list span{
+  color:#64748b;
+}
+
+.summary-list b{
+  color:#0f172a;
+  text-align:right;
+}
+
+.green-text{
+  color:#16a34a !important;
+}
+
+.total-row{
+  background:#f8fafc;
+  padding:18px !important;
+  border-radius:16px;
+  border-bottom:none !important;
+  margin-top:8px;
+}
+
+.total-row b{
+  font-size:24px;
+  color:#16a34a !important;
+}
+
+.pay-form{
+  margin-top:25px;
+}
+
+.pay-form label{
+  display:block;
+  font-weight:800;
+  margin-bottom:8px;
+  color:#334155;
+}
+
+.pay-form input{
+  width:100%;
+  padding:16px;
+  border-radius:14px;
+  border:1px solid #cbd5e1;
+  outline:none;
+  font-size:16px;
+}
+
+.pay-form input:focus{
+  border-color:#2563eb;
+  box-shadow:0 0 0 4px rgba(37,99,235,.13);
+}
+
+.confirm-btn{
+  width:100%;
+  margin-top:18px;
+  border:none;
+  border-radius:16px;
+  padding:16px;
+  background:linear-gradient(135deg,#16a34a,#059669);
+  color:white;
+  font-weight:900;
+  font-size:16px;
+  cursor:pointer;
+  box-shadow:0 14px 30px rgba(22,163,74,.28);
+}
+
+.payment-steps{
+  max-width:1120px;
+  margin:30px auto 0;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+}
+
+.payment-steps div{
+  background:white;
+  padding:16px;
+  text-align:center;
+  border-radius:16px;
+  font-weight:800;
+  color:#334155;
+  box-shadow:0 10px 30px rgba(15,23,42,.08);
+}
+
+@media(max-width:900px){
+  .payment-layout,
+  .payment-steps{
+    grid-template-columns:1fr;
+  }
+
+  .payment-header h1{
+    font-size:32px;
+  }
+}
+</style>
+
+<script>
+function copyUPI(){
+  const upiText = document.getElementById("upiText").innerText;
+  navigator.clipboard.writeText(upiText);
+  alert("UPI ID copied: " + upiText);
+}
+</script>
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'travelapp/base.html' %}
+{% block title %}{{ post.title }} | TravelWorld{% endblock %}
+{% block content %}
+
+<section class="detail-hero" style="background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.55)),url('{{ post.image }}')">
+  <div class="container">
+    <div class="hero-kicker">{{ post.category }}</div>
+    <h1>{{ post.title }}</h1>
+    <p>{{ post.created_at|date:"d M Y" }}</p>
+  </div>
+</section>
+
+<div class="container" style="margin-top:35px;">
+  <div class="panel">
+    <p style="line-height:1.9;color:#475569;">{{ post.content }}</p>
+  </div>
+
+  <div class="section-title">
+    <h2>Related Blogs</h2>
+  </div>
+
+  <div class="grid">
+    {% for r in related %}
+      <div class="card">
+        <div class="card-body">
+          <h2>{{ r.title }}</h2>
+          <p class="small">{{ r.short_description }}</p>
+          <a class="btn" href="{% url 'blog_details' r.slug %}">Read</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

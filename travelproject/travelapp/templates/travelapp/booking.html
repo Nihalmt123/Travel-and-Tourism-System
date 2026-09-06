@@ -1,0 +1,495 @@
+{% extends 'travelapp/base.html' %}
+
+{% block title %}Book {{ package.name }} - TravelWorld{% endblock %}
+
+{% block content %}
+
+<section class="booking-page">
+
+    <div class="booking-header">
+        <span>Secure Travel Booking</span>
+        <h1>Complete Your {{ package.name }} Booking</h1>
+        <p>Enter traveller details, preview total amount, apply coupon and continue to UPI payment.</p>
+    </div>
+
+    <div class="booking-card">
+
+        <div class="booking-left">
+            <div class="package-img-box">
+                <img
+                    src="{{ package.image }}"
+                    alt="{{ package.name }}"
+                    onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200';"
+                >
+                <div class="img-badge">{{ package.category.icon }} {{ package.category.name }}</div>
+            </div>
+
+            <div class="package-summary">
+                <h2>{{ package.name }}</h2>
+                <p>{{ package.city }}, {{ package.country }}</p>
+
+                <div class="summary-row">
+                    <span>Duration</span>
+                    <b>{{ package.days }} Days / {{ package.nights }} Nights</b>
+                </div>
+
+                <div class="summary-row">
+                    <span>Price</span>
+                    <b>₹<span id="pricePerPerson">{{ package.price }}</span> / person</b>
+                </div>
+
+                <div class="summary-row">
+                    <span>Available Seats</span>
+                    <b>{{ package.available_seats }}</b>
+                </div>
+
+                <div class="summary-row">
+                    <span>Hotel</span>
+                    <b>{{ package.hotel }}</b>
+                </div>
+
+                <div class="summary-row">
+                    <span>Flight</span>
+                    <b>{{ package.flight }}</b>
+                </div>
+
+                <div class="coupon-help">
+                    <h3>Available Coupons</h3>
+                    <p><b>NEWUSER10</b> - 10% off above ₹20,000</p>
+                    <p><b>TRAVEL20</b> - 20% off above ₹50,000</p>
+                    <p><b>HONEYMOON15</b> - 15% off above ₹40,000</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="booking-right">
+            <h2>Traveller Details</h2>
+            <p class="subtitle">Please enter valid details for booking confirmation.</p>
+
+            <form method="post" class="booking-form" id="bookingForm">
+                {% csrf_token %}
+
+                <div class="form-grid">
+                    <div>
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" placeholder="Enter full name" required>
+                    </div>
+
+                    <div>
+                        <label>Phone Number</label>
+                        <input type="text" name="phone" placeholder="Enter phone number" required>
+                    </div>
+                </div>
+
+                <label>Email Address</label>
+                <input type="email" name="email" placeholder="Enter email address" required>
+
+                <div class="form-grid">
+                    <div>
+                        <label>Travel Date</label>
+                        <input type="date" name="travel_date" required>
+                    </div>
+
+                    <div>
+                        <label>No. of Travellers</label>
+                        <input type="number" id="members" name="members" min="1" max="{{ package.available_seats }}" value="1" required>
+                    </div>
+                </div>
+
+                <label>Coupon Code</label>
+                <div class="coupon-box">
+                    <input type="text" id="couponInput" name="coupon_code" placeholder="Enter Coupon Code">
+                    <button type="button" onclick="applyCoupon()">Apply</button>
+                </div>
+
+                <p id="couponMessage" class="coupon-message"></p>
+
+                <div class="fare-box">
+                    <h3>Fare Summary</h3>
+
+                    <div class="fare-row">
+                        <span>Base Fare</span>
+                        <b>₹<span id="baseFare">{{ package.price }}</span></b>
+                    </div>
+
+                    <div class="fare-row">
+                        <span>Coupon Discount</span>
+                        <b class="discount-text">- ₹<span id="discountAmount">0</span></b>
+                    </div>
+
+                    <div class="fare-row total">
+                        <span>Total Payable</span>
+                        <b>₹<span id="totalAmount">{{ package.price }}</span></b>
+                    </div>
+                </div>
+
+                <div class="secure-box">
+                    <span>🔒</span>
+                    <p>Your payment will continue through secure UPI QR payment.</p>
+                </div>
+
+                <button class="booking-btn" type="submit">
+                    Continue to Payment
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+</section>
+
+<style>
+.booking-page{
+    min-height:80vh;
+    padding:48px 7%;
+    background:
+        radial-gradient(circle at top left, #dbeafe, transparent 32%),
+        linear-gradient(135deg, #f8fbff, #eef5ff);
+}
+
+.booking-header{
+    max-width:950px;
+    margin:0 auto 32px;
+    text-align:center;
+}
+
+.booking-header span{
+    display:inline-block;
+    background:#ecfdf5;
+    color:#047857;
+    padding:9px 18px;
+    border-radius:999px;
+    font-weight:900;
+    margin-bottom:12px;
+}
+
+.booking-header h1{
+    margin:0;
+    font-size:42px;
+    color:#0f172a;
+}
+
+.booking-header p{
+    color:#64748b;
+    font-size:16px;
+    margin-top:10px;
+}
+
+.booking-card{
+    max-width:1180px;
+    margin:auto;
+    display:grid;
+    grid-template-columns: 40% 60%;
+    background:white;
+    border-radius:32px;
+    overflow:hidden;
+    box-shadow:0 30px 85px rgba(15,23,42,.15);
+    border:1px solid #e5e7eb;
+}
+
+.booking-left{
+    background:#0f172a;
+    color:white;
+}
+
+.package-img-box{
+    position:relative;
+}
+
+.package-img-box img{
+    width:100%;
+    height:315px;
+    object-fit:cover;
+    display:block;
+}
+
+.img-badge{
+    position:absolute;
+    left:20px;
+    bottom:20px;
+    background:rgba(255,255,255,.95);
+    color:#0f172a;
+    padding:10px 16px;
+    border-radius:999px;
+    font-weight:900;
+}
+
+.package-summary{
+    padding:30px;
+}
+
+.package-summary h2{
+    font-size:34px;
+    margin:0 0 6px;
+}
+
+.package-summary p{
+    color:#cbd5e1;
+    margin-bottom:24px;
+}
+
+.summary-row{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:14px 0;
+    border-bottom:1px solid rgba(255,255,255,.12);
+}
+
+.summary-row span{
+    color:#94a3b8;
+}
+
+.summary-row b{
+    text-align:right;
+}
+
+.coupon-help{
+    margin-top:24px;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+    padding:18px;
+    border-radius:20px;
+}
+
+.coupon-help h3{
+    margin:0 0 10px;
+}
+
+.coupon-help p{
+    margin:8px 0;
+    color:#e2e8f0;
+}
+
+.booking-right{
+    padding:42px;
+}
+
+.booking-right h2{
+    font-size:34px;
+    color:#0f172a;
+    margin:0 0 8px;
+}
+
+.subtitle{
+    color:#64748b;
+    margin-bottom:25px;
+}
+
+.booking-form label{
+    display:block;
+    font-weight:800;
+    color:#334155;
+    margin:15px 0 8px;
+}
+
+.booking-form input{
+    width:100%;
+    padding:15px 18px;
+    border:1px solid #dbe4f0;
+    border-radius:15px;
+    font-size:16px;
+    outline:none;
+    transition:.2s;
+}
+
+.booking-form input:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 4px rgba(37,99,235,.12);
+}
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+}
+
+.coupon-box{
+    display:flex;
+    gap:10px;
+}
+
+.coupon-box input{
+    flex:1;
+}
+
+.coupon-box button{
+    border:none;
+    background:#2563eb;
+    color:white;
+    border-radius:15px;
+    padding:0 22px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.coupon-message{
+    margin:10px 0 0;
+    font-weight:800;
+}
+
+.fare-box{
+    margin-top:24px;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:22px;
+    padding:22px;
+}
+
+.fare-box h3{
+    margin:0 0 15px;
+    color:#0f172a;
+}
+
+.fare-row{
+    display:flex;
+    justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid #e2e8f0;
+}
+
+.fare-row:last-child{
+    border-bottom:none;
+}
+
+.fare-row span{
+    color:#64748b;
+}
+
+.fare-row b{
+    color:#0f172a;
+}
+
+.discount-text{
+    color:#16a34a !important;
+}
+
+.fare-row.total{
+    margin-top:8px;
+    background:#ecfdf5;
+    padding:16px;
+    border-radius:16px;
+}
+
+.fare-row.total span{
+    color:#047857;
+    font-weight:900;
+}
+
+.fare-row.total b{
+    color:#16a34a;
+    font-size:26px;
+}
+
+.secure-box{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+    padding:15px;
+    border-radius:16px;
+    margin-top:18px;
+    font-weight:700;
+}
+
+.secure-box p{
+    margin:0;
+}
+
+.booking-btn{
+    width:100%;
+    margin-top:24px;
+    padding:17px;
+    border:none;
+    border-radius:17px;
+    background:linear-gradient(135deg,#16a34a,#059669);
+    color:white;
+    font-weight:900;
+    font-size:17px;
+    cursor:pointer;
+    box-shadow:0 14px 35px rgba(22,163,74,.30);
+}
+
+.booking-btn:hover{
+    transform:translateY(-1px);
+}
+
+@media(max-width:900px){
+    .booking-card{
+        grid-template-columns:1fr;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .booking-header h1{
+        font-size:32px;
+    }
+}
+</style>
+
+<script>
+const pricePerPerson = Number("{{ package.price }}");
+const membersInput = document.getElementById("members");
+const couponInput = document.getElementById("couponInput");
+const couponMessage = document.getElementById("couponMessage");
+
+function calculateTotal(){
+    let members = Number(membersInput.value || 1);
+    let baseFare = pricePerPerson * members;
+    let discount = getDiscount(baseFare);
+
+    document.getElementById("baseFare").innerText = baseFare;
+    document.getElementById("discountAmount").innerText = discount;
+    document.getElementById("totalAmount").innerText = baseFare - discount;
+}
+
+function getDiscount(baseFare){
+    let code = couponInput.value.trim().toUpperCase();
+
+    if(code === "NEWUSER10" && baseFare >= 20000){
+        return Math.floor(baseFare * 10 / 100);
+    }
+
+    if(code === "TRAVEL20" && baseFare >= 50000){
+        return Math.floor(baseFare * 20 / 100);
+    }
+
+    if(code === "HONEYMOON15" && baseFare >= 40000){
+        return Math.floor(baseFare * 15 / 100);
+    }
+
+    return 0;
+}
+
+function applyCoupon(){
+    let code = couponInput.value.trim().toUpperCase();
+    let members = Number(membersInput.value || 1);
+    let baseFare = pricePerPerson * members;
+    let discount = getDiscount(baseFare);
+
+    if(code === ""){
+        couponMessage.innerText = "Enter a coupon code.";
+        couponMessage.style.color = "#c2410c";
+    }
+    else if(discount > 0){
+        couponMessage.innerText = "Coupon applied successfully. You saved ₹" + discount + ".";
+        couponMessage.style.color = "#16a34a";
+    }
+    else{
+        couponMessage.innerText = "Invalid coupon or minimum amount not reached.";
+        couponMessage.style.color = "#dc2626";
+    }
+
+    calculateTotal();
+}
+
+membersInput.addEventListener("input", calculateTotal);
+couponInput.addEventListener("input", calculateTotal);
+calculateTotal();
+</script>
+
+{% endblock %}

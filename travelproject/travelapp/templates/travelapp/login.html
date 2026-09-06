@@ -1,0 +1,68 @@
+{% extends 'travelapp/base.html' %}
+
+
+{% block title %}User Login - TravelWorld{% endblock %}
+
+{% block content %}
+
+<div class="form-box">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <h2> Login</h2>
+    <p class="small">Login here to book packages, manage trips and view receipts.</p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+
+        <button class="btn" style="width:100%">
+            Login
+        </button>
+    </form>
+
+    <p style="margin-top:15px;">
+        New user?
+        <a href="{% url 'register' %}" style="color:#115dfc;font-weight:600;">
+            Create account
+        </a>
+    </p>
+
+
+
+</div>
+
+<style>
+.alert{
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-weight:600;
+    text-align:center;
+}
+.alert-error,.alert-danger{
+    background:#ffe5e5;
+    color:#d90429;
+    border:1px solid #ffb3b3;
+}
+.alert-success{
+    background:#e8fff0;
+    color:#198754;
+    border:1px solid #a8e6bc;
+}
+.alert-warning{
+    background:#fff8db;
+    color:#856404;
+    border:1px solid #ffe58f;
+}
+</style>
+
+{% endblock %}

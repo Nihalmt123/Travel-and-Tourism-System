@@ -1,0 +1,32 @@
+{% extends 'travelapp/base.html' %}
+{% block title %}Travel Blogs | TravelWorld{% endblock %}
+{% block content %}
+
+<div class="container" style="padding-top:35px;">
+  <div class="section-title">
+    <div>
+      <h2>Travel Blogs</h2>
+      <p class="small">Guides, tips and destination ideas.</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    {% for post in posts %}
+      <div class="card">
+        <div class="imgwrap">
+          <img src="{{ post.image }}" onerror="this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200';">
+          <span class="badge">{{ post.category }}</span>
+        </div>
+        <div class="card-body">
+          <h2>{{ post.title }}</h2>
+          <p class="small">{{ post.short_description }}</p>
+          <a class="btn" href="{% url 'blog_details' post.slug %}">Read Blog</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty"><h2>No blogs found</h2></div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

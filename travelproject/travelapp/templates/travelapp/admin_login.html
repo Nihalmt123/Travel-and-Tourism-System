@@ -1,0 +1,39 @@
+{% extends 'travelapp/base.html' %}
+
+{% block title %}Admin Login - TravelWorld{% endblock %}
+
+{% block content %}
+
+<div class="form-box">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <h2>Admin Login</h2>
+    <p class="small">Login here to access the TravelWorld admin dashboard.</p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <input type="text" name="username" placeholder="Admin Username" required>
+        <input type="password" name="password" placeholder="Admin Password" required>
+
+        <button class="btn orange" style="width:100%">
+            Login as Admin
+        </button>
+    </form>
+
+    <p style="margin-top:15px;">
+        User?
+        <a href="{% url 'login' %}" style="color:#115dfc;font-weight:600;">
+            User Login
+        </a>
+    </p>
+</div>
+
+{% endblock %}

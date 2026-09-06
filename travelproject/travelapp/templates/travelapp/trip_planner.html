@@ -1,0 +1,62 @@
+{% extends 'travelapp/base.html' %}
+{% block title %}AI Trip Planner | TravelWorld{% endblock %}
+{% block content %}
+
+<div class="container" style="padding-top:35px;">
+  <div class="section-title">
+    <div>
+      <h2>AI Trip Planner</h2>
+      <p class="small">Enter your budget, days and travel type. TravelWorld recommends packages.</p>
+    </div>
+  </div>
+
+  <div class="panel">
+    <form method="get" class="search-grid">
+      <div class="field">
+        <label>Budget</label>
+        <input type="number" name="budget" value="{{ budget }}" placeholder="Enter Your Budget">
+      </div>
+
+      <div class="field">
+        <label>Maximum Days</label>
+        <input type="number" name="days" value="{{ days }}" placeholder="Enter">
+      </div>
+
+      <div class="field">
+        <label>Travel Type</label>
+        <select name="category">
+          <option value="">Any Type</option>
+          {% for c in categories %}
+            <option value="{{ c.slug }}" {% if selected_category == c.slug %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button class="btn">Suggest</button>
+    </form>
+  </div>
+
+  <div class="grid" style="margin-top:25px;">
+    {% for p in recommended %}
+      <div class="card">
+        <div class="imgwrap">
+          <img src="{{ p.image }}" onerror="this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200';">
+          <span class="badge">AI Match</span>
+        </div>
+        <div class="card-body">
+          <h2>{{ p.name }}</h2>
+          <p class="small">{{ p.city }}, {{ p.country }} • {{ p.days }}D/{{ p.nights }}N</p>
+          <div class="price">₹{{ p.price }}</div>
+          <a class="btn" href="{% url 'package_details' p.id %}">View Details</a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty">
+        <h2>No suggestion yet</h2>
+        <p>Enter budget, days and category to get smart recommendations.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

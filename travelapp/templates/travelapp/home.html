@@ -1,0 +1,181 @@
+{% extends 'travelapp/base.html' %}
+
+{% block title %}Home | TravelWorld{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <div class="hero-kicker">✨ Smart holiday booking platform</div>
+
+  <h1>Search destinations like a modern travel website</h1>
+
+  <div class="hero-stats">
+    <div class="hero-stat">25+ seeded destinations</div>
+    <div class="hero-stat">8 travel categories</div>
+  </div>
+</section>
+
+<section class="search-panel">
+  <div class="cat-tabs">
+    <a class="cat-tab {% if not selected_category %}active{% endif %}" href="{% url 'home' %}">
+      🌍 All Packages
+    </a>
+
+    {% for c in categories %}
+      <a class="cat-tab {% if selected_category == c.slug %}active{% endif %}" href="?category={{ c.slug }}">
+        {{ c.icon }} {{ c.name }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <form method="get" class="search-grid">
+    <div class="field">
+      <label>To City / Country / Category</label>
+
+      <input list="places" name="q" value="{{ query }}" placeholder="Search Your Destination">
+
+      <datalist id="places">
+        {% for p in all_packages %}
+          <option value="{{ p.name }}">
+          <option value="{{ p.city }}">
+          <option value="{{ p.country }}">
+          <option value="{{ p.category.name }}">
+        {% endfor %}
+      </datalist>
+    </div>
+
+    <div class="field">
+      <label>Package Type</label>
+
+      <select name="category">
+        <option value="">All Categories</option>
+
+        {% for c in categories %}
+          <option value="{{ c.slug }}" {% if selected_category == c.slug %}selected{% endif %}>
+            {{ c.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Maximum Budget</label>
+      <input type="number" name="budget" value="{{ budget }}" placeholder="Optional">
+    </div>
+
+    <button class="btn" type="submit">SEARCH</button>
+  </form>
+</section>
+
+<div class="container">
+
+  <div class="strip">
+    <div class="strip-card">
+      <b>Smart Search</b>
+      <p class="small">Exact place comes first, then city, country, category and tags.</p>
+    </div>
+
+    <div class="strip-card">
+      <b>Categories</b>
+      <p class="small">Honeymoon, Nature, Beach, Adventure, Family and more.</p>
+    </div>
+
+    <div class="strip-card">
+      <b>UPI Payment</b>
+      <p class="small">Dynamic QR generates with exact booking amount.</p>
+    </div>
+
+    <div class="strip-card">
+      <b>Receipt</b>
+      <p class="small">Print or save a professional booking receipt.</p>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <div>
+      <h2>Recommended Packages</h2>
+    </div>
+
+    <a class="btn outline" href="{% url 'home' %}">
+      Clear Search
+    </a>
+  </div>
+
+  <div class="grid">
+    {% for p in packages %}
+      <div class="card">
+
+        <div class="imgwrap">
+
+          {% if p.name == "Kashmir" %}
+            <img src="https://images.unsplash.com/photo-1595815771614-ade501f84b0f?w=1200"
+                 alt="Kashmir"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200';">
+
+          {% elif p.name == "Ooty" %}
+            <img src="https://images.unsplash.com/photo-1587474260584-136574528ed5?w=1200"
+                 alt="Ooty"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200';">
+
+          {% elif p.name == "Jim Corbett" %}
+            <img src="https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1200"
+                 alt="Jim Corbett"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200';">
+
+          {% else %}
+            <img src="{{ p.image }}"
+                 alt="{{ p.name }}"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200';">
+          {% endif %}
+
+          <span class="badge">
+            {{ p.category.icon }} {{ p.category.name }}
+          </span>
+
+          <a class="heart" href="{% url 'toggle_wishlist' p.id %}">
+            ♥
+          </a>
+        </div>
+
+        <div class="card-body">
+          <h2>{{ p.name }}</h2>
+
+          <div class="meta">
+            <span>{{ p.city }}, {{ p.country }}</span>
+            <span>{{ p.days }}D/{{ p.nights }}N</span>
+            <span>⭐ {{ p.rating }}</span>
+            <span>{{ p.available_seats }} seats</span>
+          </div>
+
+          <div class="price">
+            ₹{{ p.price }}
+            <span class="old">₹{{ p.old_price }}</span>
+          </div>
+
+          <p class="small">
+            {{ p.description|truncatechars:105 }}
+          </p>
+
+          <div class="card-actions">
+            <a class="btn" href="{% url 'package_details' p.id %}">
+              View Details
+            </a>
+
+            <a class="btn orange" href="{% url 'booking' p.id %}">
+              Book Now
+            </a>
+          </div>
+        </div>
+
+      </div>
+    {% empty %}
+      <div class="empty">
+        <h2>No package found</h2>
+        <p>Try Goa, Kerala, Honeymoon, Nature, Beach, Family, Luxury or Adventure.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endblock %}

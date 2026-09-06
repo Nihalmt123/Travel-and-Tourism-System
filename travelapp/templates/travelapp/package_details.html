@@ -1,0 +1,486 @@
+{% extends 'travelapp/base.html' %}
+
+{% block title %}{{ package.name }} | TravelWorld{% endblock %}
+
+{% block content %}
+
+<section class="detail-hero"
+         style="background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.55)),url('{{ package.image }}')">
+
+    <div class="container">
+        <div class="hero-kicker">Premium Travel Package</div>
+
+        <h1>{{ package.name }}</h1>
+
+        <p>
+            {{ package.city }}, {{ package.country }}
+            • {{ package.category.name }}
+            • ⭐ {{ package.rating }}
+        </p>
+
+        <div class="hero-tags">
+            <span>{{ package.days }} Days / {{ package.nights }} Nights</span>
+            <span>{{ package.available_seats }} Seats Available</span>
+            <span>Starting ₹{{ package.price }}</span>
+        </div>
+    </div>
+
+</section>
+
+<div class="container detail-layout">
+
+    <main>
+
+        <div class="panel">
+            <div class="panel-title">
+                <div>
+                    <h2>Package Overview</h2>
+                    <p class="small">A complete travel experience designed for comfort and memorable moments.</p>
+                </div>
+            </div>
+
+            <p class="overview-text">{{ package.description }}</p>
+
+            <div class="info-row">
+                <div class="info-box">
+                    <span>⏱</span>
+                    <b>Duration</b>
+                    <p>{{ package.days }} Days / {{ package.nights }} Nights</p>
+                </div>
+
+                <div class="info-box">
+                    <span>🏨</span>
+                    <b>Hotel</b>
+                    <p>{{ package.hotel }}</p>
+                </div>
+
+                <div class="info-box">
+                    <span>✈️</span>
+                    <b>Flight</b>
+                    <p>{{ package.flight }}</p>
+                </div>
+
+                <div class="info-box">
+                    <span>🎟</span>
+                    <b>Seats</b>
+                    <p>{{ package.available_seats }} Available</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Package Highlights</h2>
+
+            <div class="highlight-grid">
+                <div>🏨 Premium selected hotel stay</div>
+                <div>🚗 Local sightseeing assistance</div>
+                <div>📍 Day-wise destination plan</div>
+                <div>🛡️ Safe travel support</div>
+                <div>💳 Secure UPI QR payment</div>
+                <div>🧾 Professional booking receipt</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Day-wise Itinerary</h2>
+
+            <div class="timeline">
+                {% for line in package.itinerary.splitlines %}
+                    <div class="timeline-item">
+                        <span>{{ forloop.counter }}</span>
+                        <p>{{ line }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Included & Excluded</h2>
+
+            <div class="include-grid">
+                <div class="include yes">✔ Hotel Accommodation</div>
+                <div class="include yes">✔ Travel Assistance</div>
+                <div class="include yes">✔ Sightseeing Support</div>
+                <div class="include yes">✔ Booking Confirmation</div>
+                <div class="include no">✖ Personal Expenses</div>
+                <div class="include no">✖ Extra Activities</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Travel Tips</h2>
+
+            <div class="tips-grid">
+                <div>
+                    <b>Best For</b>
+                    <p>{{ package.category.name }} travellers, families and group trips.</p>
+                </div>
+
+                <div>
+                    <b>Carry</b>
+                    <p>Valid ID proof, comfortable clothes and booking receipt.</p>
+                </div>
+
+                <div>
+                    <b>Payment</b>
+                    <p>UPI QR payment with receipt confirmation.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Reviews & Ratings</h2>
+
+            {% for r in reviews %}
+                <div class="review-box">
+                    <div>
+                        <b>{{ r.user.username }}</b>
+                        <span>⭐ {{ r.rating }}</span>
+                    </div>
+                    <p>{{ r.comment }}</p>
+                </div>
+            {% empty %}
+                <p class="small">No reviews yet. Be the first traveller to review this package.</p>
+            {% endfor %}
+        </div>
+
+        {% if related %}
+            <div class="panel">
+                <h2>Related Packages</h2>
+
+                <div class="related-grid">
+                    {% for r in related %}
+                        <a class="related-card" href="{% url 'package_details' r.id %}">
+                            <img src="{{ r.image }}" alt="{{ r.name }}"
+                                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1200';">
+                            <div>
+                                <b>{{ r.name }}</b>
+                                <p>₹{{ r.price }} • {{ r.days }}D/{{ r.nights }}N</p>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+    </main>
+
+    <aside>
+        <div class="booking-panel">
+            <div class="deal-badge">Limited Time Deal</div>
+
+            <p class="small">Starting from</p>
+
+            <div class="price">
+                ₹{{ package.price }}
+                <span class="old">₹{{ package.old_price }}</span>
+            </div>
+
+            <p class="small">Per person including selected services.</p>
+
+            <div class="side-info">
+                <p><b>Destination:</b> {{ package.name }}</p>
+                <p><b>Category:</b> {{ package.category.name }}</p>
+                <p><b>Duration:</b> {{ package.days }}D / {{ package.nights }}N</p>
+                <p><b>Available Seats:</b> {{ package.available_seats }}</p>
+                <p><b>Rating:</b> ⭐ {{ package.rating }}</p>
+            </div>
+
+            <a class="btn green" href="{% url 'booking' package.id %}">
+                Book This Package
+            </a>
+
+            <a class="btn outline" href="{% url 'toggle_wishlist' package.id %}">
+                Add to Wishlist
+            </a>
+
+            <div class="secure-note">
+                🔒 Secure booking with UPI QR payment and refund request support.
+            </div>
+        </div>
+    </aside>
+
+</div>
+
+<style>
+.detail-hero{
+    min-height:430px;
+    background-size:cover;
+    background-position:center;
+    display:flex;
+    align-items:center;
+    color:white;
+}
+
+.detail-hero h1{
+    font-size:62px;
+    margin:14px 0;
+    letter-spacing:-1.5px;
+}
+
+.detail-hero p{
+    font-size:20px;
+    color:#f8fafc;
+}
+
+.hero-tags{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-top:18px;
+}
+
+.hero-tags span{
+    background:rgba(255,255,255,.18);
+    border:1px solid rgba(255,255,255,.22);
+    padding:10px 16px;
+    border-radius:999px;
+    font-weight:800;
+}
+
+.detail-layout{
+    display:grid;
+    grid-template-columns:1fr 360px;
+    gap:30px;
+    margin-top:38px;
+    align-items:start;
+}
+
+.panel{
+    background:white;
+    border-radius:24px;
+    padding:30px;
+    margin-bottom:25px;
+    box-shadow:0 18px 50px rgba(15,23,42,.08);
+    border:1px solid #e5e7eb;
+}
+
+.panel-title{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    margin-bottom:15px;
+}
+
+.panel h2{
+    margin:0 0 15px;
+    color:#0f172a;
+}
+
+.overview-text{
+    color:#475569;
+    line-height:1.8;
+}
+
+.info-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin-top:25px;
+}
+
+.info-box{
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:18px;
+    padding:18px;
+}
+
+.info-box span{
+    display:block;
+    font-size:26px;
+    margin-bottom:8px;
+}
+
+.info-box b{
+    display:block;
+    color:#0f172a;
+    margin-bottom:6px;
+}
+
+.info-box p{
+    margin:0;
+    color:#475569;
+    font-size:14px;
+}
+
+.highlight-grid,
+.include-grid,
+.tips-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+}
+
+.highlight-grid div,
+.include,
+.tips-grid div{
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:16px;
+    padding:17px;
+    font-weight:700;
+}
+
+.include.yes{
+    color:#15803d;
+    background:#ecfdf5;
+}
+
+.include.no{
+    color:#dc2626;
+    background:#fef2f2;
+}
+
+.tips-grid p{
+    color:#64748b;
+    margin-bottom:0;
+    font-weight:500;
+}
+
+.timeline-item{
+    display:flex;
+    gap:14px;
+    margin-bottom:16px;
+}
+
+.timeline-item span{
+    width:38px;
+    height:38px;
+    min-width:38px;
+    background:linear-gradient(135deg,#2563eb,#06b6d4);
+    color:white;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    font-weight:900;
+    box-shadow:0 0 0 6px #dbeafe;
+}
+
+.timeline-item p{
+    margin:0;
+    background:#f8fafc;
+    padding:15px 17px;
+    border-radius:16px;
+    flex:1;
+    border:1px solid #e2e8f0;
+    line-height:1.6;
+}
+
+.review-box{
+    background:#f8fafc;
+    border-radius:16px;
+    padding:16px;
+    margin-bottom:12px;
+    border:1px solid #e2e8f0;
+}
+
+.review-box div{
+    display:flex;
+    justify-content:space-between;
+}
+
+.related-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+}
+
+.related-card{
+    display:flex;
+    gap:14px;
+    align-items:center;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    padding:13px;
+    border-radius:18px;
+}
+
+.related-card img{
+    width:90px;
+    height:75px;
+    object-fit:cover;
+    border-radius:14px;
+}
+
+.related-card p{
+    color:#64748b;
+    margin:5px 0 0;
+}
+
+.booking-panel{
+    position:sticky;
+    top:96px;
+    background:white;
+    border-radius:28px;
+    padding:28px;
+    box-shadow:0 24px 65px rgba(15,23,42,.15);
+    border:1px solid #e5e7eb;
+}
+
+.deal-badge{
+    display:inline-block;
+    background:#fff7ed;
+    color:#c2410c;
+    padding:8px 14px;
+    border-radius:999px;
+    font-weight:900;
+    margin-bottom:15px;
+}
+
+.booking-panel .btn{
+    width:100%;
+    margin-top:12px;
+    text-align:center;
+}
+
+.side-info{
+    background:#f8fafc;
+    border-radius:18px;
+    padding:16px;
+    margin:22px 0;
+    border:1px solid #e2e8f0;
+}
+
+.side-info p{
+    margin:9px 0;
+    color:#334155;
+}
+
+.secure-note{
+    margin-top:18px;
+    background:#eff6ff;
+    color:#1d4ed8;
+    border:1px solid #bfdbfe;
+    border-radius:16px;
+    padding:14px;
+    font-weight:700;
+    line-height:1.5;
+}
+
+@media(max-width:950px){
+    .detail-layout{
+        grid-template-columns:1fr;
+    }
+
+    .info-row{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .detail-hero h1{
+        font-size:42px;
+    }
+}
+
+@media(max-width:650px){
+    .info-row,
+    .highlight-grid,
+    .include-grid,
+    .tips-grid,
+    .related-grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+
+{% endblock %}

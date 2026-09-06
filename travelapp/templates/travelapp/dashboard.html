@@ -1,0 +1,330 @@
+{% extends 'travelapp/base.html' %}
+
+{% block title %}Admin Dashboard | TravelWorld{% endblock %}
+
+{% block content %}
+
+<div class="container admin-dashboard">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="admin-alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="admin-hero">
+        <span>TravelWorld Admin Panel</span>
+        <h1>Dashboard Control Center</h1>
+        <p>Manage users, packages, bookings, refunds and contact enquiries.</p>
+    </div>
+
+    <div class="dashboard">
+        <div onclick="showSection('users')" class="stat premium-blue">
+            <p>Total Users</p>
+            <h3>{{ stats.users }}</h3>
+            <span>Click to view users</span>
+        </div>
+
+        <div onclick="showSection('packages')" class="stat premium-purple">
+            <p>Total Packages</p>
+            <h3>{{ stats.packages }}</h3>
+            <span>Click to manage packages</span>
+        </div>
+
+        <div onclick="showSection('bookings')" class="stat premium-orange">
+            <p>Total Bookings</p>
+            <h3>{{ stats.bookings }}</h3>
+            <span>Click to manage bookings</span>
+        </div>
+
+        <div onclick="showSection('payments')" class="stat premium-green">
+            <p>Total Revenue</p>
+            <h3>₹{{ stats.revenue }}</h3>
+            <span>Click to view payments</span>
+        </div>
+
+        <div onclick="showSection('refunds')" class="stat premium-red">
+            <p>Refunds</p>
+            <h3>{{ refunds|length }}</h3>
+            <span>Click to manage refunds</span>
+        </div>
+
+        <div onclick="showSection('enquiries')" class="stat premium-dark">
+            <p>Enquiries</p>
+            <h3>{{ enquiries|length }}</h3>
+            <span>Click to manage enquiries</span>
+        </div>
+    </div>
+
+    <div class="panel admin-detail-section" id="users">
+        <h2>Total Users Details</h2>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                </tr>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{% if u.is_staff %}Admin{% else %}User{% endif %}</td>
+                    <td>{{ u.date_joined|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">No users found.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="panel admin-detail-section" id="packages">
+        <div class="panel-head">
+            <h2>Package Management</h2>
+            <a class="mini-btn" href="{% url 'admin_add_package' %}">Add Package</a>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Package</th>
+                    <th>City</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Bookings</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+
+                {% for p in popular %}
+                <tr>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.city }}</td>
+                    <td>{{ p.category.name }}</td>
+                    <td>₹{{ p.price }}</td>
+                    <td>{{ p.count }}</td>
+                    <td>{% if p.is_active %}Active{% else %}Inactive{% endif %}</td>
+                    <td>
+                        <a class="mini-btn blue" href="{% url 'admin_edit_package' p.id %}">Edit</a>
+                        <a class="mini-btn red" href="{% url 'admin_delete_package' p.id %}"
+                           onclick="return confirm('Delete this package?');">Delete</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No packages found.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="panel admin-detail-section" id="bookings">
+        <h2>Booking Management</h2>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>User</th>
+                    <th>Package</th>
+                    <th>Travel Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Update</th>
+                </tr>
+
+                {% for b in bookings %}
+                <tr>
+                    <td>TW-{{ b.id }}</td>
+                    <td>{{ b.user.username }}</td>
+                    <td>{{ b.package.name }}</td>
+                    <td>{{ b.travel_date }}</td>
+                    <td>₹{{ b.total_amount }}</td>
+                    <td>{{ b.status }}</td>
+                    <td>
+                        <form method="post" action="{% url 'admin_update_booking_status' b.id %}" class="inline-form">
+                            {% csrf_token %}
+                            <select name="status">
+                                <option value="Pending">Pending</option>
+                                <option value="Confirmed">Confirmed</option>
+                                <option value="Travel Scheduled">Travel Scheduled</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                            <button class="mini-btn">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No bookings found.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="panel admin-detail-section" id="payments">
+        <h2>Payment Details</h2>
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Booking</th>
+                    <th>Package</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Transaction ID</th>
+                    <th>Paid On</th>
+                </tr>
+
+                {% for p in payments %}
+                <tr>
+                    <td>TW-{{ p.booking.id }}</td>
+                    <td>{{ p.booking.package.name }}</td>
+                    <td>₹{{ p.amount }}</td>
+                    <td>{{ p.payment_method }}</td>
+                    <td>{{ p.payment_status }}</td>
+                    <td>{{ p.transaction_id }}</td>
+                    <td>{{ p.paid_on|date:"d M Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No payments found.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="panel admin-detail-section" id="refunds">
+        <h2>Refund Management</h2>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Booking</th>
+                    <th>User</th>
+                    <th>Package</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Reason</th>
+                    <th>Actions</th>
+                </tr>
+
+                {% for r in refunds %}
+                <tr>
+                    <td>TW-{{ r.id }}</td>
+                    <td>{{ r.user.username }}</td>
+                    <td>{{ r.package.name }}</td>
+                    <td>₹{{ r.refund_amount }}</td>
+                    <td>{{ r.refund_status }}</td>
+                    <td>{{ r.cancellation_reason }}</td>
+                    <td>
+                        <a class="mini-btn blue" href="{% url 'admin_approve_refund' r.id %}">Approve</a>
+                        <a class="mini-btn green" href="{% url 'admin_complete_refund' r.id %}">Complete</a>
+                        <a class="mini-btn red" href="{% url 'admin_reject_refund' r.id %}">Reject</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No refund records found.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="panel admin-detail-section" id="enquiries">
+        <h2>Contact Enquiry Management</h2>
+
+        <div class="table-wrap">
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Subject</th>
+                    <th>Package</th>
+                    <th>Status</th>
+                    <th>Update</th>
+                </tr>
+
+                {% for e in enquiries %}
+                <tr>
+                    <td>{{ e.name }}</td>
+                    <td>{{ e.email }}</td>
+                    <td>{{ e.phone }}</td>
+                    <td>{{ e.subject }}</td>
+                    <td>{% if e.package %}{{ e.package.name }}{% else %}-{% endif %}</td>
+                    <td>{{ e.status }}</td>
+                    <td>
+                        <form method="post" action="{% url 'admin_update_enquiry_status' e.id %}" class="inline-form">
+                            {% csrf_token %}
+                            <select name="status">
+                                <option value="New">New</option>
+                                <option value="Contacted">Contacted</option>
+                                <option value="Closed">Closed</option>
+                            </select>
+                            <button class="mini-btn">Save</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No enquiries found.</td></tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<style>
+.admin-dashboard{padding-top:35px}
+.admin-alert{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;padding:14px 18px;border-radius:14px;font-weight:800;margin-bottom:18px}
+.admin-hero{background:linear-gradient(135deg,#07142e,#2563eb);color:white;border-radius:28px;padding:42px;margin-bottom:28px}
+.admin-hero span{background:rgba(255,255,255,.15);padding:10px 18px;border-radius:30px;font-weight:900}
+.admin-hero h1{font-size:44px;margin:18px 0 8px}
+.dashboard{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}
+.stat{color:white;border-radius:24px;padding:25px;cursor:pointer;box-shadow:0 18px 45px rgba(15,23,42,.14);transition:.25s}
+.stat:hover{transform:translateY(-4px)}
+.stat p{margin:0;font-weight:800}
+.stat h3{font-size:38px;margin:10px 0}
+.stat span{font-size:13px;color:white}
+.premium-blue{background:linear-gradient(135deg,#2563eb,#06b6d4)}
+.premium-purple{background:linear-gradient(135deg,#7c3aed,#a855f7)}
+.premium-orange{background:linear-gradient(135deg,#f97316,#fb923c)}
+.premium-green{background:linear-gradient(135deg,#16a34a,#059669)}
+.premium-red{background:linear-gradient(135deg,#dc2626,#fb7185)}
+.premium-dark{background:linear-gradient(135deg,#0f172a,#334155)}
+.admin-detail-section{display:none}
+.panel{background:white;border-radius:24px;padding:25px;margin-bottom:28px;box-shadow:0 18px 45px rgba(15,23,42,.10);border:1px solid #e5e7eb}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.panel h2{margin-top:0;color:#0f172a}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{background:#0f172a;color:white;padding:14px;text-align:left}
+td{padding:14px;border-bottom:1px solid #e5e7eb;color:#334155}
+tr:hover td{background:#f8fafc}
+.inline-form{display:flex;gap:8px;align-items:center}
+.inline-form select{padding:8px;border-radius:8px;border:1px solid #cbd5e1}
+.mini-btn{display:inline-block;border:none;background:#ff8a00;color:white !important;padding:8px 12px;border-radius:8px;font-weight:800;text-decoration:none;cursor:pointer;margin:2px}
+.mini-btn.blue{background:#2563eb}
+.mini-btn.green{background:#16a34a}
+.mini-btn.red{background:#dc2626}
+@media(max-width:900px){.dashboard{grid-template-columns:1fr}.inline-form{flex-direction:column;align-items:flex-start}}
+</style>
+
+<script>
+function showSection(sectionId){
+    document.querySelectorAll(".admin-detail-section").forEach(function(section){
+        section.style.display = "none";
+    });
+
+    const selected = document.getElementById(sectionId);
+
+    if(selected){
+        selected.style.display = "block";
+        selected.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+}
+</script>
+
+{% endblock %}
